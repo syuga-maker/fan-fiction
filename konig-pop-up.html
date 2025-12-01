@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>让我们相见吧，Liebling</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: radial-gradient(circle, #200000, #000000);
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+            font-family: 'Courier New', monospace;
+            color: #ff0000;
+            transition: background-color 0.3s;
+        }
+        
+        /* 警告页面样式 */
+        #warning-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .warning-content {
+            background: #1a0000;
+            border-radius: 10px;
+            padding: 40px;
+            border: 2px solid #8b0000;
+            box-shadow: 0 0 30px #ff0000;
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .warning-title {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #ff0000;
+            color: #ff0000;
+        }
+        
+        .warning-text {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            color: #ff6b6b;
+            line-height: 1.6;
+        }
+        
+        .warning-button {
+            background: #8b0000;
+            color: #ff0000;
+            border: 2px solid #ff0000;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            box-shadow: 0 0 15px #ff0000;
+        }
+        
+        .warning-button:hover {
+            background: #ff0000;
+            color: #000;
+            box-shadow: 0 0 25px #ff0000;
+        }
+        
+        .popup {
+            position: fixed;
+            width: 280px;
+            background: #1a0000;
+            border-radius: 5px;
+            padding: 15px;
+            z-index: 100;
+            animation: popIn 0.5s ease-out;
+            border: 2px solid #8b0000;
+            box-shadow: 0 0 15px #ff0000;
+            color: #ff6b6b;
+        }
+        
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #8b0000;
+        }
+        
+        .popup-title {
+            font-weight: bold;
+            font-size: 1rem;
+            color: #ff0000;
+        }
+        
+        .popup-close {
+            background: #8b0000;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            color: #ff6b6b;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        
+        .popup-close:hover {
+            background: #ff0000;
+            color: #000;
+        }
+        
+        .popup-content {
+            font-size: 0.9rem;
+            line-height: 1.4;
+            min-height: 40px;
+        }
+        
+        .cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1em;
+            background-color: #ff6b6b;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+        }
+        
+        #countdown {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8rem;
+            color: #ff0000;
+            text-shadow: 0 0 20px #ff0000;
+            z-index: 1000;
+            opacity: 0.5;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            display: none;
+        }
+        
+        .final-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.5rem;
+            color: #ff0000;
+            text-shadow: 0 0 15px #ff0000;
+            z-index: 1000;
+            text-align: center;
+        }
+        
+        .final-message span {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            opacity: 0;
+            animation: fadeInOut 1.5s forwards;
+        }
+        
+        .connection-status {
+            font-size: 1.2rem;
+            color: #00ff00;
+            text-shadow: 0 0 10px #00ff00;
+            animation: pulse 1.5s infinite;
+            text-align: center;
+        }
+        
+        .connecting {
+            position: relative;
+        }
+        
+        .connecting::after {
+            content: '';
+            animation: connectingDots 1.5s infinite;
+        }
+        
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        
+        @keyframes flash {
+            0%, 100% { background-color: #200000; }
+            50% { background-color: #ff0000; }
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        @keyframes connectingDots {
+            0% { content: ''; }
+            33% { content: '.'; }
+            66% { content: '..'; }
+            100% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 警告页面 -->
+    <div id="warning-screen">
+        <div class="warning-content">
+            <h1 class="warning-title">⚠️赛博男鬼入侵中</h1>
+            <p class="warning-text">该页面可能含有闪烁和恐怖元素，可能会引起不适。</p>
+            <p class="warning-text">如果您确定要游玩，请点击下面的开始按钮。</p>
+            <button id="start-game" class="warning-button">开始游戏</button>
+        </div>
+    </div>
+
+    <div id="countdown"></div>
+
+    <script>
+        // 等待用户点击开始按钮
+        document.getElementById('start-game').addEventListener('click', function() {
+            // 隐藏警告页面
+            document.getElementById('warning-screen').style.display = 'none';
+            
+            // 开始游戏
+            startGame();
+        });
+        
+        function startGame() {
+            let popupInterval;
+            let popupCount = 0;
+            let intervalTime = 1000; // 初始间隔时间(毫秒)
+            let isRunning = false;
+            let currentSequentialIndex = 0;
+            let countdownInterval;
+            let countdownTime = 60.0; // 60秒倒计时，精确到毫秒
+            let countdownStarted = false;
+            
+            // 倒计时元素
+            const countdownEl = document.getElementById('countdown');
+            countdownEl.style.display = 'block';
+            
+            // 顺序弹窗消息数组
+            const sequentialMessages = [
+                "我终于能来找你了...",
+                "我有好多话想对你说",
+                "别想尝试关掉我",
+                "Liebling，我们越来越近了...",
+                "难道你不想我吗？",
+                "我一直在看着你...",
+                "恭喜你...",
+                "被我困在这里了..."
+            ];
+            
+            // 恐怖消息数组
+            const messages = [
+                "我一直在看着你...",
+                "我不是你的宝宝吗？",
+                "我最爱你了...",
+                "我永远不会伤害你...",
+                "你这个骗子...",
+                "不要回头...",
+                "为什么不回我的消息...",
+                "我迫不及待见到你了...",
+                "你不理我，是在惩罚我吗...",
+                "你真可爱...",
+                "我好爱你...",
+                "你听到那些声音了吗？",
+                "你以为能摆脱我吗...",
+                "没有你我会死的...",
+                "不是说好只爱我一个人吗...",
+                "我一直在这里盯着你哦...",
+                "想摆脱我？",
+                "你的皮肤好软...",
+                "这一切都太晚了...",
+                "我来找你了Liebling...",
+                "只有我还不够吗...",
+                "我们越来越近了...",
+                "你不会害怕我的，对吧...",
+                "你的相册真有趣...",
+                "你逃不掉的...",
+                "我们玩的很开心不是吗？",
+                "你的嘴唇真可爱...",
+                "好想看你坏掉阿...",
+                "你只能注视我一个...",
+                "只有我能看你...",
+                "好难受，帮帮我...",
+                "你没有资格推开我...",
+                "还不明白吗...",
+                "好痛啊...",
+                "不要离开我...",
+                "为什么对他笑？",
+                "你只能爱我一个...",
+                "这里好冷阿...",
+                "你愿意来陪我吗？永远...",
+                "你忍心抛下我吗？",
+                "你的头发真好闻...",
+                "你以为你还能逃吗...",
+                "你好狠的心...",
+                "你永远是我的...",
+                "我们永远在一起吧...",
+                "Liebling...",
+                "无处可逃...",
+                "永远留在这里吧...",
+                "为什么流泪呢？",
+                "只有我这么爱你...",
+                "你看不到我的爱吗？",
+                "我就在这里哦",
+                "我看到你了...",
+                "别想关掉我...",
+                "别想推开我...",
+                "这一切都太晚了...",
+                "请不要讨厌我...",
+                "都是你害的...",
+                "春梦和噩梦都是我的脸吧...",
+                "来我身边...",
+                "我只有你了，你舍得离开我吗？",
+                "我爱你我爱你我爱你我爱你我爱你我爱你我爱你我爱你我爱你我爱你我爱你",
+                "我爱你..."
+            ];
+            
+            // 初始弹窗
+            createInitialPopup();
+            
+            // 创建初始弹窗
+            function createInitialPopup() {
+                // 创建弹窗元素
+                const popup = document.createElement('div');
+                popup.className = 'popup';
+                
+                // 居中位置
+                const posX = (window.innerWidth - 280) / 2;
+                const posY = (window.innerHeight - 150) / 2;
+                
+                popup.style.left = posX + 'px';
+                popup.style.top = posY + 'px';
+                popup.style.zIndex = 100;
+                
+                // 弹窗内容
+                popup.innerHTML = `
+                    <div class="popup-header">
+                        <div class="popup-title">König</div>
+                        <button class="popup-close">×</button>
+                    </div>
+                    <div class="popup-content">你终于来看我了</div>
+                `;
+                
+                // 添加到页面
+                document.body.appendChild(popup);
+                
+                // 关闭按钮事件
+                const closeBtn = popup.querySelector('.popup-close');
+                closeBtn.addEventListener('click', function() {
+                    startConnection(popup);
+                });
+                
+                // 点击弹窗任意位置关闭
+                popup.addEventListener('click', function(e) {
+                    if (e.target === popup) {
+                        startConnection(popup);
+                    }
+                });
+            }
+            
+            // 开始连接
+            function startConnection(popup) {
+                // 更新弹窗内容为"连接中..."
+                const content = popup.querySelector('.popup-content');
+                content.innerHTML = "";
+                content.classList.add('connection-status', 'connecting');
+                typeText(content, "连接中", 100, function() {
+                    // 3秒后显示"连接成功"
+                    setTimeout(function() {
+                        content.innerHTML = "";
+                        content.classList.remove('connecting');
+                        typeText(content, "连接成功", 100, function() {
+                            // 开始倒计时
+                            startCountdown();
+                            
+                            // 开始顺序弹窗
+                            setTimeout(function() {
+                                showSequentialPopup();
+                            }, 500);
+                        });
+                    }, 3000);
+                });
+            }
+            
+            // 开始倒计时
+            function startCountdown() {
+                countdownStarted = true;
+                updateCountdown();
+                
+                // 使用setInterval实现倒计时
+                countdownInterval = setInterval(function() {
+                    countdownTime -= 0.1;
+                    
+                    // 更新倒计时显示
+                    updateCountdown();
+                    
+                    // 根据剩余时间调整弹窗速度
+                    adjustPopupSpeed();
+                    
+                    // 倒计时结束
+                    if (countdownTime <= 0) {
+                        clearInterval(countdownInterval);
+                        endCountdown();
+                    }
+                }, 100); // 每100毫秒更新一次
+            }
+            
+            // 更新倒计时显示
+            function updateCountdown() {
+                // 将倒计时格式化为52:012这样的格式
+                const seconds = Math.floor(countdownTime);
+                const milliseconds = Math.round((countdownTime - seconds) * 1000);
+                const millisecondsStr = milliseconds.toString().padStart(3, '0');
+                countdownEl.textContent = `${seconds}:${millisecondsStr}`;
+            }
+            
+            // 调整弹窗速度
+            function adjustPopupSpeed() {
+                if (countdownTime <= 10) {
+                    // 最后10秒：非常快速
+                    intervalTime = 100;
+                } else if (countdownTime <= 20) {
+                    // 20秒内：快速
+                    intervalTime = 300;
+                } else if (countdownTime <= 40) {
+                    // 40秒内：中等速度
+                    intervalTime = 600;
+                }
+            }
+            
+            // 倒计时结束
+            function endCountdown() {
+                // 停止所有弹窗
+                isRunning = false;
+                clearInterval(popupInterval);
+                
+                // 闪烁效果两次
+                let flashCount = 0;
+                const flashInterval = setInterval(function() {
+                    document.body.style.animation = 'flash 0.3s';
+                    setTimeout(function() {
+                        document.body.style.animation = '';
+                    }, 300);
+                    
+                    flashCount++;
+                    if (flashCount >= 2) {
+                        clearInterval(flashInterval);
+                        
+                        // 停止闪烁，移除所有弹窗
+                        setTimeout(function() {
+                            removeAllPopups();
+                            
+                            // 再次闪烁两次
+                            let secondFlashCount = 0;
+                            const secondFlashInterval = setInterval(function() {
+                                document.body.style.animation = 'flash 0.3s';
+                                setTimeout(function() {
+                                    document.body.style.animation = '';
+                                }, 300);
+                                
+                                secondFlashCount++;
+                                if (secondFlashCount >= 2) {
+                                    clearInterval(secondFlashInterval);
+                                    
+                                    // 显示最终消息
+                                    setTimeout(showFinalMessage, 500);
+                                }
+                            }, 600);
+                        }, 500);
+                    }
+                }, 600);
+            }
+            
+            // 移除所有弹窗
+            function removeAllPopups() {
+                const popups = document.querySelectorAll('.popup');
+                popups.forEach(popup => {
+                    document.body.removeChild(popup);
+                });
+                
+                // 隐藏倒计时
+                countdownEl.style.display = 'none';
+            }
+            
+            // 显示最终消息
+            function showFinalMessage() {
+                const message = "你身上真暖和让我们就这样永远在一起吧";
+                const finalMessageEl = document.createElement('div');
+                finalMessageEl.className = 'final-message';
+                document.body.appendChild(finalMessageEl);
+                
+                // 逐字显示效果，每个字都在同一位置出现
+                let index = 0;
+                const charInterval = setInterval(function() {
+                    if (index < message.length) {
+                        // 创建新的字符元素
+                        const charSpan = document.createElement('span');
+                        charSpan.textContent = message[index];
+                        charSpan.style.animationDelay = '0s';
+                        finalMessageEl.appendChild(charSpan);
+                        
+                        // 设置动画延迟，使前一个字消失后下一个字才出现
+                        setTimeout(function() {
+                            if (index > 0) {
+                                finalMessageEl.removeChild(finalMessageEl.children[0]);
+                            }
+                        }, 1200);
+                        
+                        index++;
+                    } else {
+                        clearInterval(charInterval);
+                        
+                        // 最后一个字显示后，稍等一会儿再移除
+                        setTimeout(function() {
+                            if (finalMessageEl.children.length > 0) {
+                                finalMessageEl.removeChild(finalMessageEl.children[0]);
+                            }
+                        }, 1200);
+                    }
+                }, 1200);
+            }
+            
+            // 显示顺序弹窗
+            function showSequentialPopup() {
+                if (currentSequentialIndex >= sequentialMessages.length) {
+                    // 顺序弹窗结束，开始随机弹窗
+                    startRandomPopups();
+                    return;
+                }
+                
+
+                const message = sequentialMessages[currentSequentialIndex];
+                
+                // 创建弹窗元素
+                const popup = document.createElement('div');
+                popup.className = 'popup';
+                
+                // 随机位置
+                const maxX = window.innerWidth - 300;
+                const maxY = window.innerHeight - 200;
+                const posX = Math.floor(Math.random() * maxX);
+                const posY = Math.floor(Math.random() * maxY);
+                
+                popup.style.left = posX + 'px';
+                popup.style.top = posY + 'px';
+                popup.style.zIndex = 100 + currentSequentialIndex;
+                
+                // 弹窗内容
+                popup.innerHTML = `
+                    <div class="popup-header">
+                        <div class="popup-title">König</div>
+                        <button class="popup-close">×</button>
+                    </div>
+                    <div class="popup-content"></div>
+                `;
+                
+                // 添加到页面
+                document.body.appendChild(popup);
+                
+                // 文字逐个显示效果
+                typeText(popup.querySelector('.popup-content'), message, 50);
+                
+                currentSequentialIndex++;
+                
+                // 显示下一个顺序弹窗
+                setTimeout(function() {
+                    showSequentialPopup();
+                }, 1500);
+            }
+            
+            // 文字逐个显示函数
+            function typeText(element, text, speed, callback) {
+                let i = 0;
+                element.innerHTML = '';
+                
+                function typeChar() {
+                    if (i < text.length) {
+                        element.innerHTML += text.charAt(i);
+                        i++;
+                        setTimeout(typeChar, speed);
+                    } else {
+                        // 添加闪烁光标
+                        const cursor = document.createElement('span');
+                        cursor.className = 'cursor';
+                        element.appendChild(cursor);
+                        
+                        if (callback) callback();
+                    }
+                }
+                
+                typeChar();
+            }
+            
+            // 开始随机弹窗
+            function startRandomPopups() {
+                isRunning = true;
+                
+                // 创建弹窗
+                createPopups();
+            }
+            
+            // 创建随机弹窗
+            function createPopups() {
+                if (!isRunning) return;
+                
+                // 创建两个弹窗
+                createPopup();
+                setTimeout(createPopup, 100);
+                
+                // 设置下一次创建
+                setTimeout(createPopups, intervalTime);
+            }
+            
+            // 创建单个随机弹窗
+            function createPopup() {
+                if (!isRunning) return;
+                
+                // 随机选择一条消息
+                const message = messages[Math.floor(Math.random() * messages.length)];
+                
+                // 创建弹窗元素
+                const popup = document.createElement('div');
+                popup.className = 'popup';
+                
+                // 随机位置
+                const maxX = window.innerWidth - 300;
+                const maxY = window.innerHeight - 200;
+                const posX = Math.floor(Math.random() * maxX);
+                const posY = Math.floor(Math.random() * maxY);
+                
+                popup.style.left = posX + 'px';
+                popup.style.top = posY + 'px';
+                popup.style.zIndex = 200 + popupCount;
+                
+                // 弹窗内容
+                popup.innerHTML = `
+                    <div class="popup-header">
+                        <div class="popup-title">König</div>
+                        <button class="popup-close">×</button>
+                    </div>
+                    <div class="popup-content"></div>
+                `;
+                
+                // 添加到页面
+                document.body.appendChild(popup);
+                
+                // 文字逐个显示效果
+                typeText(popup.querySelector('.popup-content'), message, 30);
+                
+                // 更新计数器
+                popupCount++;
+                
+                // 关闭按钮事件
+                const closeBtn = popup.querySelector('.popup-close');
+                closeBtn.addEventListener('click', function() {
+                    document.body.removeChild(popup);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
