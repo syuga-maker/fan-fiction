@@ -243,6 +243,29 @@
             #countdown { font-size: 4rem; }
             .final-message span { font-size: 1.8rem; }
         }
+		
+		/* --- CRT 扫描线屏幕特效 --- */
+body::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 9999; /* 盖在最上面 */
+    background-size: 100% 2px, 3px 100%; /* 制造网格感 */
+    pointer-events: none; /* 让鼠标可以穿透这层遮罩点按钮 */
+    animation: flicker 0.15s infinite; /* 微微闪烁 */
+}
+
+@keyframes flicker {
+    0% { opacity: 0.95; }
+    50% { opacity: 1; }
+    100% { opacity: 0.98; }
+}
+		
     </style>
 </head>
 <body>
@@ -366,6 +389,7 @@
                     const now = Date.now();
                     const remaining = Math.max(0, endTime - now) / 1000;
                     countdownTime = remaining;
+
 
                     
                     updateCountdown(remaining);
